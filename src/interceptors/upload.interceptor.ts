@@ -31,9 +31,13 @@ export class UploadInterceptor implements NestInterceptor {
       limits: { fileSize: 10000000 },
     });
     for await (const data of files) {
+      const uploadDir = pathJoin(uploadFolder, data.fieldname);
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir);
+      }
       await pump(
         data.file,
-        fs.createWriteStream(pathJoin(uploadFolder, data.filename)),
+        fs.createWriteStream(pathJoin(uploadDir, data.filename)),
       );
     }
     return next.handle();

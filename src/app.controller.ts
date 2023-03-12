@@ -22,6 +22,10 @@ export class AppController {
   @UseGuards(UploadGuard)
   @UseInterceptors(UploadInterceptor)
   uploadHandler() {
-    return 'File(s) have been uploaded';
+    return {
+      status: 'ok',
+      error: null,
+      message: 'files have been uploaded',
+    };
   }
 }
