@@ -36,5 +36,8 @@ This is the main place where the files get uploaded. This interceptor cycles ove
 
 The files path depends on their key name which they have been sent by it, but the main directory for uploaded files is a folder called `uploads` where it will have sub-folders when files getting uploaded.
 
+Files after getting stored in the server, can be retreived with this url: GET `/upload/[file-name received in response]`
+
 At the moment, we didn't implement any logic for the files type validation but there is a limit for the files size which has been set to 1,000,000 bytes whitin the multipart plugin registration to fastify server in main.ts file.
+
 
