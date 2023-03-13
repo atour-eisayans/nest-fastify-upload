@@ -2,15 +2,15 @@ import { pipeline } from 'stream';
 import * as fs from 'fs';
 import { join as pathJoin } from 'path';
 import { promisify } from 'util';
+import { randomBytes } from 'crypto';
 import {
   CallHandler,
   ExecutionContext,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { FastifyRequest } from 'fastify';
-import { MultipartFile } from '@fastify/multipart';
 
 const pump = promisify(pipeline);
 
@@ -27,19 +27,22 @@ export class UploadInterceptor implements NestInterceptor {
     next: CallHandler<any>,
   ): Promise<Observable<any>> {
     const req = context.switchToHttp().getRequest() as FastifyRequest;
-    const files: AsyncIterableIterator<MultipartFile> = req.files({
-      limits: { fileSize: 10000000 },
-    });
+    const savedFiles: string[] = [];
+    const files = req.files();
     for await (const data of files) {
       const uploadDir = pathJoin(uploadFolder, data.fieldname);
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir);
       }
+      const fileName = `${randomBytes(4).toString('hex')}_${data.filename}`;
       await pump(
         data.file,
-        fs.createWriteStream(pathJoin(uploadDir, data.filename)),
+        fs.createWriteStream(pathJoin(uploadDir, fileName)),
       );
+      savedFiles.push(`${data.fieldname}/${fileName}`);
     }
-    return next.handle();
+    return next
+      .handle()
+      .pipe(map((data) => ({ ...data, uploadedFiles: savedFiles })));
   }
 }

@@ -8,9 +8,12 @@ import { FastifyRequest } from 'fastify';
 
 @Injectable()
 export class UploadGuard implements CanActivate {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest() as FastifyRequest;
-    const isMultipart = req.isMultipart();
+    const contentTypeRegex = new RegExp('multipart/form-data');
+    const isMultipart = contentTypeRegex.test(
+      req.headers['content-type'] || '',
+    );
     if (!isMultipart) {
       throw new BadRequestException('Request is not multipart');
     }
