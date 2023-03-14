@@ -4,11 +4,10 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import fstatic from '@fastify/static';
+import { join } from 'path';
 import * as fs from 'fs';
 import { AppModule } from '../src/app.module';
-import { join } from 'path';
-import multipart from '@fastify/multipart';
+import applyPlugins from '../src/app.plugins';
 
 describe('Upload', () => {
   let app: NestFastifyApplication;
@@ -20,18 +19,7 @@ describe('Upload', () => {
       new FastifyAdapter(),
     );
 
-    app.register(multipart, {
-      limits: {
-        files: 1,
-        fileSize: 1000000,
-        fields: 0,
-      },
-    });
-
-    app.register(fstatic, {
-      root: join(__dirname, '..', 'uploads'),
-      prefix: '/upload/',
-    });
+    applyPlugins(app);
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
